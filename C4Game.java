@@ -1,11 +1,8 @@
 public class C4Game {
-    private Column[] data;
+    private Position current;
 
     public C4Game() {
-        data = new Column[] {
-            new Column(), new Column(), new Column(), 
-            new Column(), new Column(), 
-            new Column(), new Column(),
-        };
+        current = new Position();
+        current.push(0,1);
     }
 }
