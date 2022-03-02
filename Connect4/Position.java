@@ -1,8 +1,9 @@
+package connect4;
 import java.util.Arrays;
 
 class Position {
     int[][] data;
-    int[] height;
+    int[] heights;
 
     /**
      * Creates a new blank Position object (7x6).
@@ -16,13 +17,20 @@ class Position {
      * <em>Note:</em> The data in a column at index height will be 0, and the next token placed will be placed 
      * at index height because array indexes start at 0.
      */
-    public Position() {
-        data = new int[][] {
-            {0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0}, 
-            {0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0}, 
-            {0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0}
-        };
-        height = new int[] {0, 0, 0, 0, 0, 0, 0};
+    public Position(int columns, int height) {
+        //initialize data with all 0
+        data = new int[columns][];
+        for (int i = 0; i < columns; i++) {
+            data[i] = new int[height];
+                for (int j = 0; j < height; j++) {
+                    data[i][j] = 0;
+                }
+        }
+        //initialize heights with all 0
+        heights = new int[columns];
+        for (int i = 0; i < columns; i++) {
+            heights[i] = 0;
+        }
     }
 
     /**
@@ -33,9 +41,9 @@ class Position {
      * @throws IndexOutOfBoundsException  If column is already full.
      */
     public void push(int column, int value) {
-        if (height[column] < 6) {
-            data[column][height[column]] = value;
-            height[column]++;
+        if (heights[column] < 6) {
+            data[column][heights[column]] = value;
+            heights[column]++;
         } else {
             throw new IndexOutOfBoundsException("A token was placed when the column was already full!");
         } 
@@ -46,10 +54,14 @@ class Position {
      * @return  The value that was removed from the top of the column (stack).
      */
     public int pop(int column) {
-        int val = data[column][height[column] - 1];
-        data[column][height[column] - 1] = 0;
-        height[column]--;
+        int val = data[column][heights[column] - 1];
+        data[column][heights[column] - 1] = 0;
+        heights[column]--;
         return val;
+    }
+
+    public int get(int column, int row) {
+        return data[column][row];
     }
 
     @Override
@@ -65,5 +77,9 @@ class Position {
         Position other = (Position) o;
         return Arrays.deepEquals(data, other.data);
     }
-    //TODO: Override hashCode
+
+    @Override
+    public int hashCode() {
+        return Arrays.deepHashCode(data);
+    }
 }
