@@ -11,11 +11,18 @@ public class Connect4 {
     public int turn;
     public int winner;
 
+    /**
+     * Constructs a blank Connect4 Game with R to start.
+     */
     public Connect4() {
         current = new Position(COLUMNS, ROWS);
         turn = 1;
     }
 
+    /**
+     * Plays a token in the column specified. The token will be of the player who's turn it is.
+     * @param column
+     */
     public void play(int column) {
         current.push(column, turn);
         turn = 3 - turn;
@@ -25,23 +32,39 @@ public class Connect4 {
         }
     }
 
-    public int checkWin() {
+    /**
+     * Checks if there are any wins in the current position, for the lines specified by the arguments. 
+     * @param startRow  The row to start checking in. Each row will be the start of a potential winning line.
+     * @param rowAmount  The amount of rows to check.
+     * @param startColumn  The column to start checking in. Each row will be the start of a potential winning line.
+     * @param columnAmount  The amount of columns to check.
+     * @param rowStep  The amount of rows to add for each space in a potential win position. 
+     * For example, 1 would specify that the winning lines to check for are all sloping/pointing upwards.
+     * @param columnStep  The amount of columns to add for each space in a potential win position.
+     * For example, 1 would specify that the winning lines to check for are all sloping/pointing forward.
+     * @param winAmount  The amount of consecutive same tokens to check for.
+     * @return  The winning player, 0 if none.
+     */
+    public int checkLines(int startRow, int rowAmount, int startColumn, int columnAmount, int rowStep, int columnStep, int winAmount) {
         int n;
-        for (int i = 0; i < ROWS; i++) { // Loops through the rows
-            for (int j = 0; j < COLUMNS - TOWIN + 1; j++) { 
-            // Loops through the column that will be the START of the potential win position.
+        for (int i = startRow; i < startRow + rowAmount; i++) { // Loops through the specified rows.
+            for (int j = startColumn; j < startColumn + columnAmount; j++) { 
+            // Loops through the specified columns.
                 n = 1;
-                for (int k = 0; k < TOWIN; k++) { 
+                for (int k = 0; k < winAmount; k++) { 
                 /* 
-                Loops through the columns in the potential win position,
+                Loops through the spaces in the potential win position,
                 multiplying n by the value in each position. If n is 0, 
                 no one has won. If not, it checks if one of the players has won. 
                 */
-                    n *= current.get(j + k, i);
+                    n *= current.get(j + (k * columnStep), i + (k * rowStep));
+                }
+                if (n == 0) {
+                    continue;
                 }
                 if (n == 1) {
                     return 1;
-                } else if (n > Math.pow(2.0, TOWIN) - 0.5) { //Check an inequality to overcome float innaccuracy.
+                } else if (n > Math.pow(2.0, winAmount) - 0.5) { //Checking an inequality to avoid problems with float inaccuracy.
                     return 2;
                 }
             }
@@ -49,6 +72,43 @@ public class Connect4 {
         return 0;
     }
 
+    /**
+     * Checks if there are wins in the current position.
+     * @return  The winning player, 0 if none.
+     */
+    public int checkWin() {
+        int winPlayer;
+        //Horizontal Check
+        winPlayer = checkLines(0, ROWS, 0, COLUMNS - TOWIN + 1, 0, 1, TOWIN);
+        if (winPlayer != 0) {
+            return winPlayer;
+        }
+
+        //Vertical Check
+        winPlayer = checkLines(0, ROWS - TOWIN + 1, 0, COLUMNS, 1, 0, TOWIN);
+        if (winPlayer != 0) {
+            return winPlayer;
+        }
+
+        //Upward Diagonals Check
+        winPlayer = checkLines(0, ROWS - TOWIN + 1, 0, COLUMNS - TOWIN + 1, 1, 1, TOWIN);
+        if (winPlayer != 0) {
+            return winPlayer;
+        }
+
+        //Downward Diagonals Check
+        winPlayer = checkLines(TOWIN - 1, ROWS - TOWIN + 1, 0, COLUMNS - TOWIN + 1, -1, 1, TOWIN);
+        if (winPlayer != 0) {
+            return winPlayer;
+        }
+
+        //If no one has won yet...
+        return 0;
+    }
+
+    /**
+     * Calls the toString method on the current game, and prints it to the console. 
+     */
     public void print() {
         System.out.println(this);
     }
