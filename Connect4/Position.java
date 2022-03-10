@@ -5,7 +5,8 @@ class Position {
     int[][] data;
     int[] heights;
 
-    /**
+    /**1
+     * 
      * Creates a new blank Position object (7x6).
      * 
      * Contains 2 attributes. 

@@ -27,9 +27,6 @@ public class Connect4 {
         current.push(column, turn);
         turn = 3 - turn;
         winner = checkWin();
-        if (winner != 0) {
-            System.out.print(SYMBOL[winner] + " Wins!!! Played:");System.out.println(column);
-        }
     }
 
     /**
@@ -117,7 +114,6 @@ public class Connect4 {
     public String toString() {
         StringBuilder str = new StringBuilder(100);
         //Build the position, row by row.
-        str.append("Current Position:\n");
         for (int i = ROWS - 1; i > -1; i--) {
             for (int j = 0; j < COLUMNS; j++) {
                 str.append(SYMBOL[current.get(j, i)] + " ");
