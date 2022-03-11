@@ -4,10 +4,11 @@ import java.util.Arrays;
 class Position {
     int[][] data;
     int[] heights;
+    int rows;
+    int columns;
 
-    /**1
-     * 
-     * Creates a new blank Position object (7x6).
+    /**
+     * Creates a new blank Position object.
      * 
      * Contains 2 attributes. 
      * <ul>
@@ -32,6 +33,9 @@ class Position {
         for (int i = 0; i < columns; i++) {
             heights[i] = 0;
         }
+
+        this.rows = height;
+        this.columns = columns;
     }
 
     /**
@@ -39,16 +43,18 @@ class Position {
      * 
      * @param column  The column to add to.
      * @param value  The value to add. Should be a 1 or a 2.
+     * @throws IllegalMoveException
      * @throws IndexOutOfBoundsException  If column is already full.
      */
-    public void push(int column, int value) {
-        if (heights[column] < 6) {
+    public void push(int column, int value) throws IllegalMoveException {
+        if (heights[column] < rows) {
             data[column][heights[column]] = value;
             heights[column]++;
         } else {
-            throw new IndexOutOfBoundsException("A token was placed when the column was already full!");
+            throw new IllegalMoveException("A token was placed when the column was already full!");
         } 
     }
+
 
     /**
      * Removes and returns the top value of the column (stack).
@@ -61,6 +67,13 @@ class Position {
         return val;
     }
 
+    /**
+     * Returns the disk in the given column and row.
+     * Throws ArrayIndexOutOfBoundsException if the spot is not within the bounds of the game.
+     * @param column
+     * @param row
+     * @return 0 if blank, otherwise a 1 or 2 depending on which disk.
+     */
     public int get(int column, int row) {
         return data[column][row];
     }

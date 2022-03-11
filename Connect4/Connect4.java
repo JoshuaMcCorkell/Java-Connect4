@@ -12,7 +12,7 @@ public class Connect4 {
     public int winner;
 
     /**
-     * Constructs a blank Connect4 Game with R to start.
+     * Constructs a blank Connect4 Game with R (1) to start.
      */
     public Connect4() {
         current = new Position(COLUMNS, ROWS);
@@ -20,13 +20,28 @@ public class Connect4 {
     }
 
     /**
-     * Plays a token in the column specified. The token will be of the player who's turn it is.
+     * Plays a disk in the column specified. The disk will be of the player who's turn it is. This has no error check.
      * @param column
+     * @throws IllegalMoveException
      */
-    public void play(int column) {
+    public void play(int column) throws IllegalMoveException {
         current.push(column, turn);
         turn = 3 - turn;
         winner = checkWin();
+    }
+
+    /**
+     * Plays a disk in the column specified, if legal. The disk will be of the player who's turn it is.
+     * If an error is encountered, this method will do nothing.
+     * @param column
+     */
+    public void safePlay(int column) {
+        try {
+            current.push(column, turn);
+            turn = 3 - turn;
+        winner = checkWin();
+        } catch (IllegalMoveException | ArrayIndexOutOfBoundsException ignore) {//Do Nothing
+        } 
     }
 
     /**
@@ -39,7 +54,7 @@ public class Connect4 {
      * For example, 1 would specify that the winning lines to check for are all sloping/pointing upwards.
      * @param columnStep  The amount of columns to add for each space in a potential win position.
      * For example, 1 would specify that the winning lines to check for are all sloping/pointing forward.
-     * @param winAmount  The amount of consecutive same tokens to check for.
+     * @param winAmount  The amount of consecutive same disks to check for.
      * @return  The winning player, 0 if none.
      */
     public int checkLines(int startRow, int rowAmount, int startColumn, int columnAmount, int rowStep, int columnStep, int winAmount) {
