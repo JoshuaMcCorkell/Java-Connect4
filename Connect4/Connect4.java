@@ -17,6 +17,7 @@ public class Connect4 {
     public Connect4() {
         current = new Position(COLUMNS, ROWS);
         turn = 1;
+        winner = 0;
     }
 
     /**
@@ -90,6 +91,7 @@ public class Connect4 {
      */
     public int checkWin() {
         int winPlayer;
+        
         //Horizontal Check
         winPlayer = checkLines(0, ROWS, 0, COLUMNS - TOWIN + 1, 0, 1, TOWIN);
         if (winPlayer != 0) {

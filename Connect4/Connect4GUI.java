@@ -10,11 +10,10 @@ import javax.swing.*;
 public class Connect4GUI extends MouseAdapter{
     //Constants
     static final int SPACE_SIZE = 50;
-    static final String RED_DISK = "connect4/resources/Red.png";
-    static final String YELLOW_DISK = "connect4/resources/Yellow.png";
-    static final String BLANK_DISK = "connect4/resources/Blank.png";
+    static final String[] DISK_IMAGES = {"connect4/resources/Blank.png", "connect4/resources/Red.png", "connect4/resources/Yellow.png"};
     static final String[] PLAYER = {"Error", "Red", "Yellow"};
 
+    //The 'resident' game
     private Connect4 game;
 
     //Components
@@ -22,7 +21,6 @@ public class Connect4GUI extends MouseAdapter{
     private JLabel[][] board = null;
     private JLabel winDisplay;
     private JLabel turnDisplay;
-    private JButton newGameButton;
     private JMenuBar menuBar;
 
     /**
@@ -77,11 +75,11 @@ public class Connect4GUI extends MouseAdapter{
         menuBar = new JMenuBar();
 
         JMenu options = new JMenu("Options");
-
+        //Exit Button
         JMenuItem exitItem = new JMenuItem("Exit");
         exitItem.addActionListener(new ExitApp(frame));
         options.add(exitItem);
-
+        //New Game Button
         JMenuItem newGameItem = new JMenuItem("New Game");
         newGameItem.addActionListener(new NewGameButton(frame));
         options.add(newGameItem);
@@ -89,7 +87,7 @@ public class Connect4GUI extends MouseAdapter{
         menuBar.add(options);
 
         JMenu help = new JMenu("Help");
-
+        //How to Play Popup
         JMenuItem helpItem = new JMenuItem("How to Play");
         helpItem.addActionListener(new HelpMenu(frame));
         helpItem.setSize(300, 200);
@@ -124,17 +122,7 @@ public class Connect4GUI extends MouseAdapter{
     public void updateBoard() {
         for (int i = 0; i < Connect4.COLUMNS; i++) {
             for (int j = 0; j < Connect4.ROWS; j++) {
-                switch (game.current.get(i, j)) {
-                    case 1:
-                    board[i][j].setIcon(new ImageIcon(RED_DISK));
-                    break;
-                    case 2:
-                    board[i][j].setIcon(new ImageIcon(YELLOW_DISK));
-                    break;
-                    default:
-                    board[i][j].setIcon(new ImageIcon(BLANK_DISK));
-                    break;
-                }
+                board[i][j].setIcon(new ImageIcon(DISK_IMAGES[game.current.get(i, j)]));
                 board[i][j].setBounds(i * SPACE_SIZE, (Connect4.ROWS - 1) * SPACE_SIZE - j * SPACE_SIZE, SPACE_SIZE, SPACE_SIZE);
             }
         }
@@ -155,10 +143,12 @@ public class Connect4GUI extends MouseAdapter{
     //A mouse press event. Works out which column was clicked, and plays there, using the safePlay method (which ignores errors.).
     @Override
     public void mousePressed(MouseEvent mouseEvent) {
-        int clickColumn = mouseEvent.getX() / SPACE_SIZE;
-        game.safePlay(clickColumn);
-        updateBoard();
-        updateFields();
+        if (game.winner == 0) {
+            int clickColumn = mouseEvent.getX() / SPACE_SIZE;
+            game.safePlay(clickColumn);
+            updateBoard();
+            updateFields();
+        }
     }
 
     /**
@@ -200,12 +190,12 @@ public class Connect4GUI extends MouseAdapter{
                 First player to get 4 in a row wins.
                 """;
 
-            JOptionPane.showMessageDialog(frame, msg, "How to play", JOptionPane.OK_OPTION);
+            JOptionPane.showMessageDialog(frame, msg, "How to play", JOptionPane.OK_OPTION, new ImageIcon(DISK_IMAGES[1]));
         }
     }
 
     /**
-     * Context Menu for bringing up the help menu
+     * Context Menu for creating a new game.
      */
     private class NewGameButton implements ActionListener {
         private JFrame frame;
