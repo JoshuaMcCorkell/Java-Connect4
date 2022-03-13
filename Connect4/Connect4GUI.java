@@ -10,17 +10,31 @@ import javax.swing.*;
 public class Connect4GUI extends MouseAdapter{
     //Constants
     static final int SPACE_SIZE = 50;
-    static final String[] DISK_IMAGES = {"connect4/resources/Blank.png", "connect4/resources/Red.png", "connect4/resources/Yellow.png"};
+    static final ImageIcon[] DISK_ICONS = {
+        new ImageIcon("connect4/resources/Blank.png"), 
+        new ImageIcon("connect4/resources/Red.png"), 
+        new ImageIcon("connect4/resources/Yellow.png")
+    };
     static final String[] PLAYER = {"Error", "Red", "Yellow"};
 
-    //The 'resident' game
-    private Connect4 game;
+    //Other Variables
+    public Connect4 game;
+    
+    public enum GameMode {
+        PLAYER_V_PLAYER,
+        PLAYER_V_RANDOM,
+        PLAYER_V_COMPUTER
+    }
+    static final String[] GAME_MODE_STRINGS = {"Player v Player", "Easy Mode", "Hard Mode"};
+    public GameMode currentMode;
+    private boolean playerTurn;
 
     //Components
     private JFrame frame;
     private JLabel[][] board = null;
     private JLabel winDisplay;
     private JLabel turnDisplay;
+    private JLabel modeDisplay;
     private JMenuBar menuBar;
 
     /**
@@ -47,7 +61,7 @@ public class Connect4GUI extends MouseAdapter{
         frame = new JFrame();
         frame.setLayout(null);
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        frame.setTitle("Java Connect 4");
+        frame.setTitle("Java Connect " + Connect4.TOWIN);
 
         //Initialize the Board as an array of ImageIcons in JLabels
         board = new JLabel[Connect4.COLUMNS][Connect4.ROWS];
@@ -66,11 +80,14 @@ public class Connect4GUI extends MouseAdapter{
         winDisplay = new JLabel();
         winDisplay.setBounds(20, Connect4.ROWS * SPACE_SIZE + 15, 200, 50);
         frame.getContentPane().add(winDisplay);
+        modeDisplay = new JLabel();
+        modeDisplay.setBounds(Connect4.COLUMNS * SPACE_SIZE + 20, 0, 200, 100);
+        frame.getContentPane().add(modeDisplay);
 
         initMenu(); //Initialize Menu
     }
 
-    public void initMenu() {
+    private void initMenu() {
         //Initialize the menu
         menuBar = new JMenuBar();
 
@@ -100,6 +117,8 @@ public class Connect4GUI extends MouseAdapter{
 
     public void start() {
         //Update the board to the current position, update the Fields, add the MouseListener and show the frame.
+        currentMode = GameMode.PLAYER_V_PLAYER;
+        playerTurn = true;
         updateGUI();
         frame.setVisible(true);
         frame.setSize(SPACE_SIZE * (Connect4.COLUMNS + 5), SPACE_SIZE * (Connect4.ROWS + 4));
@@ -108,12 +127,47 @@ public class Connect4GUI extends MouseAdapter{
 
     public void newGame() {
         game = new Connect4();
+        playerTurn = true;
         updateGUI();
+    }
+
+    public void newGame(boolean playerStarts) {
+        game = new Connect4();
+        playerTurn = playerStarts;
+        updateGUI();
+        if (!playerStarts) {
+            playAuto();
+            updateGUI();
+        }
     }
 
     public void updateGUI() {
         updateBoard();
         updateFields();
+        if (game.winner != 0) {
+            String[] options = {"OK", "New Game", "Exit"};
+
+            int input = JOptionPane.showOptionDialog(
+                frame, 
+                Connect4.TOWIN + " in a row! " + PLAYER[game.winner] + " has won!", 
+                "Game Over", 
+                JOptionPane.DEFAULT_OPTION, 
+                JOptionPane.INFORMATION_MESSAGE,
+                DISK_ICONS[game.winner], 
+                options,
+                options[1]
+            );
+
+            if (input == 1) {
+                GameMode newMode = askGameMode();
+                if (newMode != null) {
+                    currentMode = newMode;
+                    newGame();
+                }
+            } else if (input == 2) {
+                System.exit(0);
+            }
+        }
     }
     
     /**
@@ -122,7 +176,7 @@ public class Connect4GUI extends MouseAdapter{
     public void updateBoard() {
         for (int i = 0; i < Connect4.COLUMNS; i++) {
             for (int j = 0; j < Connect4.ROWS; j++) {
-                board[i][j].setIcon(new ImageIcon(DISK_IMAGES[game.current.get(i, j)]));
+                board[i][j].setIcon(DISK_ICONS[game.current.get(i, j)]);
                 board[i][j].setBounds(i * SPACE_SIZE, (Connect4.ROWS - 1) * SPACE_SIZE - j * SPACE_SIZE, SPACE_SIZE, SPACE_SIZE);
             }
         }
@@ -132,9 +186,18 @@ public class Connect4GUI extends MouseAdapter{
      * Updates the turn and winner fields. 
      */
     public void updateFields() {
-        turnDisplay.setText("<html><h2>" + PLAYER[game.turn] + "'s Turn");
-        winDisplay.setText("");
-        if (game.winner != 0) {
+        String modeDisplayText;
+        switch (currentMode) {
+            case PLAYER_V_PLAYER: modeDisplayText = GAME_MODE_STRINGS[0]; break;
+            case PLAYER_V_RANDOM: modeDisplayText = GAME_MODE_STRINGS[1]; break;
+            case PLAYER_V_COMPUTER: modeDisplayText = GAME_MODE_STRINGS[2]; break;
+            default: modeDisplayText = "Error in Displaying Mode";
+        }
+        modeDisplay.setText("<html><h1>Current Mode: <br>" + modeDisplayText);
+        if (game.winner == 0) {
+            turnDisplay.setText("<html><h2>" + PLAYER[game.turn] + "'s Turn");
+            winDisplay.setText("");
+        } else {
             winDisplay.setText("<html><h1>" + PLAYER[game.winner] + " Wins!");
             turnDisplay.setText("");
         }
@@ -143,12 +206,65 @@ public class Connect4GUI extends MouseAdapter{
     //A mouse press event. Works out which column was clicked, and plays there, using the safePlay method (which ignores errors.).
     @Override
     public void mousePressed(MouseEvent mouseEvent) {
+        int clickColumn = mouseEvent.getX() / SPACE_SIZE;
+        
         if (game.winner == 0) {
-            int clickColumn = mouseEvent.getX() / SPACE_SIZE;
-            game.safePlay(clickColumn);
-            updateBoard();
-            updateFields();
+            if (currentMode == GameMode.PLAYER_V_PLAYER) {
+                // If in player v player mode, always play when the user clicks.
+                game.safePlay(clickColumn);
+            } else if ((currentMode == GameMode.PLAYER_V_COMPUTER || currentMode == GameMode.PLAYER_V_RANDOM) && playerTurn) {
+                // If in player v computer or random, play only if it is the users turn. 
+                boolean played = game.safePlay(clickColumn);
+                if (played) {
+                    playerTurn = false;
+                    
+                    if (game.winner == 0) {
+                        playAuto();
+                    }
+                }
+            }
+            updateGUI();
         }
+    }
+
+    /**
+     * Plays the automatic move, which will either be random or computed, based on the currentMode.
+     */
+    public void playAuto() {
+        try {
+            if (currentMode == GameMode.PLAYER_V_RANDOM) {
+                game.playRandom();
+            }
+        } catch (IllegalMoveException e) {
+            System.out.println("The Random Move Generator just played an Illegal move!");
+            e.printStackTrace();
+        }
+        playerTurn = true;
+    }
+
+    public GameMode askGameMode() {
+        String input = (String) JOptionPane.showInputDialog(
+            frame, 
+            "What game mode do you want to play?", 
+            "Game Mode Selection", 
+            JOptionPane.QUESTION_MESSAGE, 
+            DISK_ICONS[2], GAME_MODE_STRINGS, 
+            GAME_MODE_STRINGS[0]
+        );
+        if (input == null) {
+            return null;
+        }
+        if (input.equals(GAME_MODE_STRINGS[0])) {
+            return GameMode.PLAYER_V_PLAYER;
+        }
+        if (input.equals(GAME_MODE_STRINGS[1])) {
+            return GameMode.PLAYER_V_RANDOM;
+        }
+        if (input.equals(GAME_MODE_STRINGS[2])) {
+            return GameMode.PLAYER_V_COMPUTER;
+        }
+        //If none of the above are selected, just default to player v player.
+        return GameMode.PLAYER_V_PLAYER;
     }
 
     /**
@@ -190,7 +306,7 @@ public class Connect4GUI extends MouseAdapter{
                 First player to get 4 in a row wins.
                 """;
 
-            JOptionPane.showMessageDialog(frame, msg, "How to play", JOptionPane.OK_OPTION, new ImageIcon(DISK_IMAGES[1]));
+            JOptionPane.showMessageDialog(frame, msg, "How to play", JOptionPane.OK_OPTION, DISK_ICONS[1]);
         }
     }
 
@@ -206,16 +322,25 @@ public class Connect4GUI extends MouseAdapter{
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            int confirmation = 
-            JOptionPane.showConfirmDialog(
-                frame, 
-                "Are you sure? The contents of the current game will be discarded!", 
-                "Confirm", 
-                JOptionPane.OK_CANCEL_OPTION,
-                JOptionPane.WARNING_MESSAGE
-            );
-            if (confirmation == 0) {
-                newGame();
+            int confirmation;
+            if (game.winner == 0) {
+                confirmation = 
+                JOptionPane.showConfirmDialog(
+                    frame, 
+                    "Are you sure? The contents of the current game will be discarded!", 
+                    "Confirm", 
+                    JOptionPane.OK_CANCEL_OPTION,
+                    JOptionPane.WARNING_MESSAGE
+                );
+            } else {
+                confirmation = JOptionPane.OK_OPTION;
+            }
+            if (confirmation == JOptionPane.OK_OPTION) {
+                GameMode newMode = askGameMode();
+                if (newMode != null) {
+                    currentMode = newMode;
+                    newGame();
+                }
             }
         }
     }

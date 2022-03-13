@@ -1,5 +1,6 @@
 package connect4;
 import java.util.HashMap;
+import java.util.Random;
 
 public class Connect4 {
     static final int ROWS = 6;
@@ -10,6 +11,7 @@ public class Connect4 {
     public Position current;
     public int turn;
     public int winner;
+    private Random rn = new Random();
 
     /**
      * Constructs a blank Connect4 Game with R (1) to start.
@@ -36,13 +38,20 @@ public class Connect4 {
      * If an error is encountered, this method will do nothing.
      * @param column
      */
-    public void safePlay(int column) {
+    public boolean safePlay(int column) {
         try {
             current.push(column, turn);
             turn = 3 - turn;
-        winner = checkWin();
-        } catch (IllegalMoveException | ArrayIndexOutOfBoundsException ignore) {//Do Nothing
+            winner = checkWin();
+            return true;
+        } catch (IllegalMoveException | ArrayIndexOutOfBoundsException ignore) {
+            return false;
         } 
+    }
+
+    public void playRandom() throws IllegalMoveException {
+        Integer[] legalPlays = current.getLegal();
+        play(legalPlays[rn.nextInt(legalPlays.length)]);
     }
 
     /**

@@ -1,5 +1,6 @@
 package connect4;
 import java.util.Arrays;
+import java.util.LinkedList;
 
 class Position {
     int[][] data;
@@ -76,6 +77,18 @@ class Position {
      */
     public int get(int column, int row) {
         return data[column][row];
+    }
+
+    public Integer[] getLegal() {
+        LinkedList<Integer> legalPlays = new LinkedList<>();
+        for (int i = 0; i < columns; i++) {
+            if (heights[i] < rows) {
+                legalPlays.add(i);
+            }
+        }
+        Integer[] legalPlaysArray = new Integer[legalPlays.size()];
+        legalPlays.toArray(legalPlaysArray);
+        return legalPlaysArray;
     }
 
     @Override
