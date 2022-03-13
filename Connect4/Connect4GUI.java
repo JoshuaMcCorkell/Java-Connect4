@@ -28,6 +28,7 @@ public class Connect4GUI extends MouseAdapter{
     static final String[] GAME_MODE_STRINGS = {"Player v Player", "Easy Mode", "Hard Mode"};
     public GameMode currentMode;
     private boolean playerTurn;
+    public int playerColour;
 
     //Components
     private JFrame frame;
@@ -36,6 +37,7 @@ public class Connect4GUI extends MouseAdapter{
     private JLabel turnDisplay;
     private JLabel modeDisplay;
     private JMenuBar menuBar;
+    private JLabel playerColourDisplay;
 
     /**
      * Creates a new Connect4GUI with a new Connect4 game.
@@ -47,9 +49,17 @@ public class Connect4GUI extends MouseAdapter{
 
     /**
      * Creates a new Connect4GUI with the Connect4 game given.
+     * @param displayGame  Open the GUI with this game loaded
+     * @param playerColourIndex  The colour that the player is playing in the position.
      */
-    public Connect4GUI(Connect4 displayGame) {
+    public Connect4GUI(Connect4 displayGame, int playerColourIndex) {
         game = displayGame;
+        playerColour = playerColourIndex;
+        if (playerColour == game.turn) {
+            playerTurn = true;
+        } else {
+            playerTurn = false;
+        }
         init();
     }
 
@@ -83,6 +93,9 @@ public class Connect4GUI extends MouseAdapter{
         modeDisplay = new JLabel();
         modeDisplay.setBounds(Connect4.COLUMNS * SPACE_SIZE + 20, 0, 200, 100);
         frame.getContentPane().add(modeDisplay);
+        playerColourDisplay = new JLabel();
+        playerColourDisplay.setBounds(Connect4.COLUMNS * SPACE_SIZE + 20, 75, 200, 100);
+        frame.getContentPane().add(playerColourDisplay);
 
         initMenu(); //Initialize Menu
     }
@@ -128,12 +141,14 @@ public class Connect4GUI extends MouseAdapter{
     public void newGame() {
         game = new Connect4();
         playerTurn = true;
+        playerColour = 1;
         updateGUI();
     }
 
     public void newGame(boolean playerStarts) {
         game = new Connect4();
         playerTurn = playerStarts;
+        playerColour = playerStarts? 1 : 2;
         updateGUI();
         if (!playerStarts) {
             playAuto();
@@ -186,6 +201,7 @@ public class Connect4GUI extends MouseAdapter{
      * Updates the turn and winner fields. 
      */
     public void updateFields() {
+        //Set the mode display
         String modeDisplayText;
         switch (currentMode) {
             case PLAYER_V_PLAYER: modeDisplayText = GAME_MODE_STRINGS[0]; break;
@@ -194,6 +210,8 @@ public class Connect4GUI extends MouseAdapter{
             default: modeDisplayText = "Error in Displaying Mode";
         }
         modeDisplay.setText("<html><h1>Current Mode: <br>" + modeDisplayText);
+
+        //Set the turn/winner display
         if (game.winner == 0) {
             turnDisplay.setText("<html><h2>" + PLAYER[game.turn] + "'s Turn");
             winDisplay.setText("");
@@ -201,6 +219,13 @@ public class Connect4GUI extends MouseAdapter{
             winDisplay.setText("<html><h1>" + PLAYER[game.winner] + " Wins!");
             turnDisplay.setText("");
         }
+
+        if (currentMode != GameMode.PLAYER_V_PLAYER) {
+            playerColourDisplay.setText("You are playing: " + PLAYER[playerColour]);
+        } else {
+            playerColourDisplay.setText("");
+        }
+        
     }
     
     //A mouse press event. Works out which column was clicked, and plays there, using the safePlay method (which ignores errors.).
