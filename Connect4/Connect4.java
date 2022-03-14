@@ -12,6 +12,7 @@ public class Connect4 {
     public int turn;
     public int winner;
     private Random rn = new Random();
+    private HashMap<Position, Integer> transpositionTable;
 
     /**
      * Constructs a blank Connect4 Game with R (1) to start.
@@ -54,6 +55,84 @@ public class Connect4 {
         play(legalPlays[rn.nextInt(legalPlays.length)]);
     }
 
+    public void playComputer() throws IllegalMoveException {
+        transpositionTable = new HashMap<>();
+        int maxEval = -1000000;
+        int bestPlay = -1;
+        for (int columnMove : current.getLegal()) {
+            current.push(columnMove, turn);
+            int eval = minimax(10, -1000000, 1000000, false, turn);
+            if (eval > maxEval) {
+                bestPlay = columnMove;
+                maxEval = eval;
+            }
+            current.pop(columnMove);
+        }
+        play(bestPlay);
+    }
+
+    private int minimax(int depth, int alpha, int beta, boolean maximizing, int computerDisk) throws IllegalMoveException {
+        // Look up the position in the transposition table
+        if (transpositionTable.containsKey(current)) {
+            return transpositionTable.get(current);
+        }
+        //Return if the game has ended (or if the depth is at maximum)
+        int eval = checkWin();
+        if (depth == 0 || eval != 0) {
+            if (eval == 0) {
+                return eval;
+            } else {
+                if (eval == 3) {
+                    return 0;
+                } else if (eval == computerDisk) {
+                    return 100 - depth;
+                } else {
+                    return -100 - depth;
+                }
+            }
+        }
+        //Maximizing: finds the best way forward (for the computer)
+        boolean broke = false;
+        if (maximizing) {
+            int maxEval = -1000000;
+            for (int columnMove : current.getLegal()) {
+                current.push(columnMove, computerDisk);
+                eval = minimax(depth - 1, alpha, beta, false, computerDisk);
+                maxEval = Math.max(eval, maxEval);
+                alpha = Math.max(alpha, eval);
+                current.pop(columnMove);
+                if (beta <= alpha) {
+                    broke = true;
+                    break;
+                }
+            }
+            // Add the eval to the transposition table *if* it was calculated fully
+            if (!broke) {
+                transpositionTable.put(current, maxEval);
+            }
+            return maxEval;
+        // Minimizing: finds the best way forward for the opposition (the player)
+        } else {
+            int minEval = 1000000;
+            int playerDisk = 3 - computerDisk;
+            for (int columnMove : current.getLegal()) {
+                current.push(columnMove, playerDisk);
+                eval = minimax(depth - 1, alpha, beta, true, computerDisk);
+                minEval = Math.min(eval, minEval);
+                beta = Math.min(beta, eval);
+                current.pop(columnMove);
+                if (beta <= alpha) {
+                    broke = true;
+                    break;
+                }
+            }
+            if (!broke) {
+                transpositionTable.put(current, minEval);
+            }
+            return minEval;
+        }
+    }
+
     /**
      * Checks if there are any wins in the current position, for the lines specified by the arguments. 
      * @param startRow  The row to start checking in. Each row will be the start of a potential winning line.
@@ -91,6 +170,7 @@ public class Connect4 {
                 }
             }
         }
+
         return 0;
     }
 
@@ -126,6 +206,9 @@ public class Connect4 {
         }
 
         //If no one has won yet...
+        if (current.isFull()) {
+            return 3;
+        }
         return 0;
     }
 

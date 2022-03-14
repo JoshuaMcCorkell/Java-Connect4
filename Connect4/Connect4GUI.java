@@ -16,6 +16,7 @@ public class Connect4GUI extends MouseAdapter{
         new ImageIcon("connect4/resources/Yellow.png")
     };
     static final String[] PLAYER = {"Error", "Red", "Yellow"};
+    static final String[] GAME_MODE_STRINGS = {"Player v Player", "Easy Mode", "Hard Mode"};
 
     //Other Variables
     public Connect4 game;
@@ -25,7 +26,7 @@ public class Connect4GUI extends MouseAdapter{
         PLAYER_V_RANDOM,
         PLAYER_V_COMPUTER
     }
-    static final String[] GAME_MODE_STRINGS = {"Player v Player", "Easy Mode", "Hard Mode"};
+    
     public GameMode currentMode;
     private boolean playerTurn;
     public int playerColour;
@@ -240,9 +241,9 @@ public class Connect4GUI extends MouseAdapter{
             } else if ((currentMode == GameMode.PLAYER_V_COMPUTER || currentMode == GameMode.PLAYER_V_RANDOM) && playerTurn) {
                 // If in player v computer or random, play only if it is the users turn. 
                 boolean played = game.safePlay(clickColumn);
+                updateGUI();
                 if (played) {
                     playerTurn = false;
-                    
                     if (game.winner == 0) {
                         playAuto();
                     }
@@ -259,9 +260,11 @@ public class Connect4GUI extends MouseAdapter{
         try {
             if (currentMode == GameMode.PLAYER_V_RANDOM) {
                 game.playRandom();
+            } else {
+                game.playComputer();
             }
         } catch (IllegalMoveException e) {
-            System.out.println("The Random Move Generator just played an Illegal move!");
+            System.out.println("The Computer just played an Illegal move!");
             e.printStackTrace();
         }
         playerTurn = true;

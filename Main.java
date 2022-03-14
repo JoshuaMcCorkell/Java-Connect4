@@ -1,4 +1,3 @@
-import connect4.Connect4;
 import connect4.Connect4GUI;
 
 public class Main {

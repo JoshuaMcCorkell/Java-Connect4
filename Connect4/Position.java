@@ -7,6 +7,7 @@ class Position {
     int[] heights;
     int rows;
     int columns;
+    int[] checkOrder = {3, 2, 4, 1, 5, 0, 6};
 
     /**
      * Creates a new blank Position object.
@@ -56,7 +57,6 @@ class Position {
         } 
     }
 
-
     /**
      * Removes and returns the top value of the column (stack).
      * @return  The value that was removed from the top of the column (stack).
@@ -81,7 +81,8 @@ class Position {
 
     public Integer[] getLegal() {
         LinkedList<Integer> legalPlays = new LinkedList<>();
-        for (int i = 0; i < columns; i++) {
+
+        for (int i : checkOrder) {
             if (heights[i] < rows) {
                 legalPlays.add(i);
             }
@@ -89,6 +90,17 @@ class Position {
         Integer[] legalPlaysArray = new Integer[legalPlays.size()];
         legalPlays.toArray(legalPlaysArray);
         return legalPlaysArray;
+    }
+
+    public boolean isFull() {
+        boolean full = true;
+        for (int i : heights) {
+            if (i != rows) {
+                full = false;
+                break;
+            }
+        }
+        return full;
     }
 
     @Override
