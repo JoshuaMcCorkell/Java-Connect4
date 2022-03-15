@@ -13,7 +13,9 @@ public class Connect4GUI extends MouseAdapter{
     static final ImageIcon[] DISK_ICONS = {
         new ImageIcon("connect4/resources/Blank.png"), 
         new ImageIcon("connect4/resources/Red.png"), 
-        new ImageIcon("connect4/resources/Yellow.png")
+        new ImageIcon("connect4/resources/Yellow.png"),
+        //This is for when a draw happens:
+        new ImageIcon("connect4/resources/Blank.png")
     };
     static final String[] PLAYER = {"Error", "Red", "Yellow"};
     static final String[] GAME_MODE_STRINGS = {"Player v Player", "Easy Mode", "Hard Mode"};
@@ -146,6 +148,10 @@ public class Connect4GUI extends MouseAdapter{
         updateGUI();
     }
 
+    /**
+     * Starts a new game.
+     * @param playerStarts True if the player starts, and false if the computer starts. 
+     */
     public void newGame(boolean playerStarts) {
         game = new Connect4();
         playerTurn = playerStarts;
@@ -157,15 +163,22 @@ public class Connect4GUI extends MouseAdapter{
         }
     }
 
+    // Updates the GUI to reflect the current state.
     public void updateGUI() {
         updateBoard();
         updateFields();
         if (game.winner != 0) {
+            String text;
+            if (game.winner == 3) {
+                text = "Draw!";
+            } else {
+                text = Connect4.TOWIN + " in a row! " + PLAYER[game.winner] + " has won!";
+            }
             String[] options = {"OK", "New Game", "Exit"};
 
             int input = JOptionPane.showOptionDialog(
                 frame, 
-                Connect4.TOWIN + " in a row! " + PLAYER[game.winner] + " has won!", 
+                text, 
                 "Game Over", 
                 JOptionPane.DEFAULT_OPTION, 
                 JOptionPane.INFORMATION_MESSAGE,
@@ -183,7 +196,7 @@ public class Connect4GUI extends MouseAdapter{
             } else if (input == 2) {
                 System.exit(0);
             }
-        }
+        } 
     }
     
     /**
@@ -193,7 +206,6 @@ public class Connect4GUI extends MouseAdapter{
         for (int i = 0; i < Connect4.COLUMNS; i++) {
             for (int j = 0; j < Connect4.ROWS; j++) {
                 board[i][j].setIcon(DISK_ICONS[game.current.get(i, j)]);
-                board[i][j].setBounds(i * SPACE_SIZE, (Connect4.ROWS - 1) * SPACE_SIZE - j * SPACE_SIZE, SPACE_SIZE, SPACE_SIZE);
             }
         }
     }
@@ -217,8 +229,13 @@ public class Connect4GUI extends MouseAdapter{
             turnDisplay.setText("<html><h2>" + PLAYER[game.turn] + "'s Turn");
             winDisplay.setText("");
         } else {
-            winDisplay.setText("<html><h1>" + PLAYER[game.winner] + " Wins!");
+            if (game.winner == 3) {
+                winDisplay.setText("<html><h1>Draw!");
+                turnDisplay.setText("");
+            } else {
+                winDisplay.setText("<html><h1>" + PLAYER[game.winner] + " Wins!");
             turnDisplay.setText("");
+            }
         }
 
         if (currentMode != GameMode.PLAYER_V_PLAYER) {
@@ -238,18 +255,16 @@ public class Connect4GUI extends MouseAdapter{
             if (currentMode == GameMode.PLAYER_V_PLAYER) {
                 // If in player v player mode, always play when the user clicks.
                 game.safePlay(clickColumn);
+                updateGUI();
             } else if ((currentMode == GameMode.PLAYER_V_COMPUTER || currentMode == GameMode.PLAYER_V_RANDOM) && playerTurn) {
                 // If in player v computer or random, play only if it is the users turn. 
                 boolean played = game.safePlay(clickColumn);
                 updateGUI();
-                if (played) {
-                    playerTurn = false;
-                    if (game.winner == 0) {
-                        playAuto();
-                    }
+                if (played && game.winner == 0) {
+                    playAuto();
+                    updateGUI();
                 }
             }
-            updateGUI();
         }
     }
 
@@ -257,6 +272,7 @@ public class Connect4GUI extends MouseAdapter{
      * Plays the automatic move, which will either be random or computed, based on the currentMode.
      */
     public void playAuto() {
+        playerTurn = false;
         try {
             if (currentMode == GameMode.PLAYER_V_RANDOM) {
                 game.playRandom();

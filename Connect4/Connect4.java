@@ -61,7 +61,7 @@ public class Connect4 {
         int bestPlay = -1;
         for (int columnMove : current.getLegal()) {
             current.push(columnMove, turn);
-            int eval = minimax(10, -1000000, 1000000, false, turn);
+            int eval = minimax(15, -1000000, 1000000, false, turn);
             if (eval > maxEval) {
                 bestPlay = columnMove;
                 maxEval = eval;

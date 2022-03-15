@@ -7,7 +7,7 @@ class Position {
     int[] heights;
     int rows;
     int columns;
-    int[] checkOrder = {3, 2, 4, 1, 5, 0, 6};
+    int[] checkOrder = {3, 2, 4, 5, 1, 0, 6};
 
     /**
      * Creates a new blank Position object.
