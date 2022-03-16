@@ -212,13 +212,6 @@ public class Connect4 {
         return 0;
     }
 
-    /**
-     * Calls the toString method on the current game, and prints it to the console. 
-     */
-    public void print() {
-        System.out.println(this);
-    }
-
     @Override
     public String toString() {
         StringBuilder str = new StringBuilder(100);
